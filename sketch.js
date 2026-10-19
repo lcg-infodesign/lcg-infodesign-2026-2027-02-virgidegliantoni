@@ -4,98 +4,108 @@ function preload() {
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  console.log('p5.js version:', p5.VERSION);
-  // put setup code here
-  const message =
-    "This is a template repository\nfor the course Laboratorio di Computergrafica\nCommunication Design, Politecnico di Milano";
-  textAlign(CENTER, CENTER);
-  textSize(16);
-  text(message, width / 2, height / 2);
-}
+  background(245, 242, 232);
 
-function draw() {
-  // put drawing code here
-   background(245, 240, 225);
+  // disegno glifi
+  let numeroGlifi = 90;
+  let numeroColonne = ceil(sqrt(numeroGlifi));  // crea 10 colonne
+  let numeroRighe = ceil(numeroGlifi / numeroColonne); // 90 glifi in 10 colonne
+  let dimColonna = windowWidth / numeroColonne;
+  let dimRiga = windowHeight / numeroRighe;
 
-  let passoX = 100; // distanza faccine in orizzontale
-  let passoY = 100; // verticale
+  let xCorrente = 0; // posizione in x del glifo corrente
+  let yCorrente = 0; // in y
 
-  for (let y = 50; y < height + 50; y += passoY) {
-    for (let x = 50; x < width + 50; x += passoX) {
-      push();
-      translate(x, y); // sposto il sistema di riferimento al centro della faccina
+  angleMode(DEGREES); // angoli in gradi
 
-      let tipo = (floor(x / passoX) + floor(y / passoY) * 3) % 8;
-      disegnaFaccina(tipo);
+  for (let g = 0; g < numeroGlifi; g++) {
+    mioGlifo( 
+      xCorrente + dimColonna / 2, 
+      yCorrente + dimRiga / 2,
+      min(dimColonna, dimRiga) * 0.65,
+      g
+    ); 
 
-      pop(); // ripristino il sistema di riferimento
+    xCorrente += dimColonna; 
+
+    if (xCorrente >= windowWidth) {
+      xCorrente = 0;
+      yCorrente += dimRiga;
     }
   }
 }
 
-function disegnaFaccina(tipo) {
-  let colori = [
-    [194, 175, 240],
-    [112, 169, 161],
-    [69, 126, 172],
-    [255, 151, 112]
-  ];
+function draw() {
+}
 
-  let c = colori[tipo % colori.length];
-// Corpo faccina
-  stroke(45, 45, 50);
-  strokeWeight(2.5);
-  fill(c[0], c[1], c[2]);
-  ellipse(0, 0, 62, 62);
+function mioGlifo(_x, _y, _size, _tipo) {
+  push();
+  translate(_x, _y); // funzione glifo
 
-  // Occhi
-  fill(45, 45, 50);
-  noStroke();
-
-  if (tipo % 4 == 0) {
-    ellipse(-13, -8, 7, 12);
-    ellipse(13, -8, 7, 12);
-  } else if (tipo % 4 == 1) {
-    line(-19, -8, -7, -8);
-    line(7, -8, 19, -8);
-    stroke(45, 45, 50);
-    strokeWeight(3);
-    line(-18, -8, -8, -8);
-    line(8, -8, 18, -8);
-    noStroke();
-  } else if (tipo % 4 == 2) {
-    ellipse(-13, -8, 10, 6);
-    ellipse(13, -8, 10, 6);
-  } else {
-    triangle(-18, -5, -8, -13, -8, -3);
-    triangle(18, -5, 8, -13, 8, -3);
-  }
-
-  // Bocche
-  stroke(45, 45, 50);
-  strokeWeight(2.5);
+  stroke(45, 48, 52);
+  strokeWeight(1.8);
   noFill();
 
-  if (tipo % 5 == 0) {
-    arc(0, 4, 28, 22, 0, PI); // bocca triste
-  } else if (tipo % 5 == 1) {
-    line(-11, 10, 11, 10); // bocca dritta
-  } else if (tipo % 5 == 2) {
-    arc(0, 15, 20, 18, PI, TWO_PI); // bocca sorridente
-  } else if (tipo % 5 == 3) {
-    ellipse(0, 11, 9, 12); // bocca tonda
+  let tipo = _tipo % 6;
+  let r = _size * 0.38;
+
+  // forma esterna
+  if (tipo == 0) {
+    circle(0, 0, _size * 0.8);
+  } else if (tipo == 1) {
+    ellipse(0, 0, _size * 0.8, _size * 0.5);
+  } else if (tipo == 2) {
+    arc(0, 0, _size * 0.8, _size * 0.8, 30, 310);
+  } else if (tipo == 3) {
+    circle(0, 0, _size * 0.65);
+    circle(0, 0, _size * 0.35);
+  } else if (tipo == 4) {
+    line(-r, -r, r, r);
+    line(-r, r, r, -r);
   } else {
-    beginShape();
-    vertex(-12, 7);
-    vertex(-5, 13);
-    vertex(3, 7);
-    vertex(12, 13);
-    endShape(); // bocca zigzag
+    arc(0, 0, _size * 0.8, _size * 0.8, 0, 270);
+    arc(0, 0, _size * 0.55, _size * 0.55, 180, 360);
   }
-}
 
-function windowResized() {
-  resizeCanvas(windowWidth, windowHeight);
-  redraw(); 
-}
+  // spirale centrale
+  push();
+  rotate(_tipo * 23);
 
+  let angolo = 0;
+  let raggio = 0;
+
+  beginShape(); 
+  while (angolo < 720) {
+    let x = cos(angolo) * raggio;
+    let y = sin(angolo) * raggio;
+    vertex(x, y);
+
+    angolo += 12;
+    raggio += _size / 180;
+  }
+  endShape(); // conclude sequenza di vertici
+
+  pop();
+
+  // elementi geometrici variabili
+  push();
+  rotate(_tipo * 41);
+
+  if (_tipo % 4 == 0) {
+    circle(r, 0, _size * 0.16);
+    circle(-r, 0, _size * 0.16);
+  } else if (_tipo % 4 == 1) {
+    line(-r, 0, r, 0);
+    line(0, -r, 0, r);
+  } else if (_tipo % 4 == 2) {
+    circle(0, -r, _size * 0.2);
+    circle(0, r, _size * 0.2);
+    circle(r, 0, _size * 0.2);
+  } else {
+    arc(0, 0, _size * 0.9, _size * 0.9, 45, 135);
+    arc(0, 0, _size * 0.9, _size * 0.9, 225, 315);
+  }
+
+  pop();
+  pop();
+}
